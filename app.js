@@ -1,0 +1,38 @@
+import { site as s } from './site-data.js';
+const esc = v => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const lines = v => esc(v).replace(/\n/g, '<br>');
+const arrow = '<span aria-hidden="true">↗</span>';
+const media = (m, label, note, kind = '') => m?.src ? (m.type === 'video' ? `<video controls preload="none" playsinline ${m.poster ? `poster="${esc(m.poster)}"` : ''} aria-label="${esc(label)}"><source src="${esc(m.src)}"></video>` : `<img src="${esc(m.src)}" alt="${esc(m.alt || label)}" ${kind === 'portrait' ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async">`) : `<div class="placeholder ${kind}">${kind === 'portrait' ? '<span class="monogram" aria-hidden="true">И<span>С</span></span>' : `<span class="placeholder-mark" aria-hidden="true">${kind === 'video' ? '▷' : '＋'}</span>`}<div class="placeholder-caption"><strong>${esc(label)}</strong><span>${esc(note)}</span></div><span class="placeholder-id" aria-hidden="true">${kind === 'portrait' ? 'ПОРТРЕТ / 01' : 'МАТЕРИАЛ СКОРО'}</span></div>`;
+const label = text => `<p class="eyebrow">${esc(text)}</p>`;
+const nav = s.nav.map(([id, title]) => `<a href="#${id}">${esc(title)}</a>`).join('');
+document.title = s.title;
+document.querySelector('meta[name="description"]').content = s.description;
+const contacts = [
+  s.contact.phone && ['Позвонить', `tel:${s.contact.phone.replace(/[^+\d]/g, '')}`],
+  s.contact.telegram && ['Telegram', s.contact.telegram],
+  s.contact.vk && ['ВКонтакте', s.contact.vk],
+  s.contact.email && ['Написать на почту', `mailto:${s.contact.email}`]
+].filter(Boolean).filter(([,href]) => /^(https:\/\/|tel:|mailto:)/.test(href));
+document.querySelector('#app').innerHTML = `
+<header class="header" id="top"><a class="brand" href="#top" aria-label="${esc(s.name)} — на главную">иван<span class="brand-dot">.</span><small>СПИРИДОНОВ</small></a><nav class="desktop-nav" aria-label="Основная навигация">${nav}</nav><a class="header-contact" href="#contact">${esc(s.hero.primary)} ${arrow}</a><button class="menu-button" aria-expanded="false" aria-controls="mobile-nav">${esc(s.ui.menu)} <span aria-hidden="true">☰</span></button><nav id="mobile-nav" class="mobile-nav" aria-label="Мобильная навигация" hidden>${nav}<a href="#contact">${esc(s.hero.primary)}</a></nav></header>
+<main id="main">
+<section class="hero wrap" aria-labelledby="hero-title"><div class="hero-top">${label(s.hero.eyebrow)}<span class="location">${esc(s.location)}</span></div><div class="hero-grid"><div class="hero-copy"><p class="hero-name">${esc(s.name)}</p><h1 id="hero-title">${esc(s.hero.headline[0])}<br><span>${esc(s.hero.headline[1])}</span></h1><p class="hero-intro">${esc(s.hero.intro)}</p><p class="hero-line">${esc(s.hero.line)}</p><div class="hero-actions"><a class="button button-accent" href="#contact">${esc(s.hero.primary)} ${arrow}</a><a class="text-link" href="#about">${esc(s.hero.secondary)} <span aria-hidden="true">↓</span></a></div></div><div class="hero-media">${media(s.hero.media,s.ui.portrait,s.ui.portraitNote,'portrait')}<div class="media-sticker" aria-hidden="true">ЖИВО.<br>С ЮМОРОМ.<br>ПО-ВАШЕМУ.</div></div></div><div class="hero-bottom"><span>СВАДЬБЫ / КОРПОРАТИВЫ / ЮБИЛЕИ</span><a href="#about" aria-label="Перейти к знакомству">Листайте, познакомимся <span aria-hidden="true">↓</span></a></div></section>
+<section class="light section" id="about"><div class="wrap about-grid"><div>${label(s.about.label)}<h2>${esc(s.about.title)}</h2><div class="about-copy">${s.about.paragraphs.map(t=>`<p>${esc(t)}</p>`).join('')}</div><p class="quote">${lines(s.about.quote)}</p></div><div class="about-media">${media(s.about.video,s.ui.video,s.ui.videoNote,'video')}<div class="media-foot"><span>ИВАН СПИРИДОНОВ</span><span>Без сценария знакомства ${arrow}</span></div></div></div></section>
+<section class="light section formats" id="formats"><div class="wrap"><div class="section-heading">${label(s.formats.label)}<h2>${lines(s.formats.title)}</h2></div><div class="format-list">${s.formats.items.map((item,i)=>`<article class="format-row"><span class="format-number">0${i+1}</span><div><h3>${esc(item.title)}</h3><p class="format-subtitle">${esc(item.subtitle)}</p></div><p class="format-description">${esc(item.text)}</p><span class="format-tag">${esc(item.tag)}</span></article>`).join('')}</div></div></section>
+<section class="section moments" id="moments"><div class="wrap"><div class="section-heading"><div>${label(s.moments.label)}<h2>${lines(s.moments.title)}</h2></div><p class="section-note">${esc(s.moments.note)}</p></div><div class="moments-grid">${s.moments.items.map((item,i)=>`<figure class="moment moment-${i}">${media(item.media,item.typeLabel,s.ui.placeholder,i===1?'video':'photo')}<figcaption><span>${esc(item.label)}</span><span class="moment-index">0${i+1}</span></figcaption></figure>`).join('')}</div></div></section>
+<section class="light section" id="process"><div class="wrap"><div class="section-heading">${label(s.process.label)}<h2>${lines(s.process.title)}</h2></div><div class="steps">${s.process.steps.map((step,i)=>`<article><span class="step-number">0${i+1}</span><h3>${esc(step.title)}</h3><p>${esc(step.text)}</p></article>`).join('')}</div></div></section>
+<section class="light section faq" id="faq"><div class="wrap faq-grid"><div>${label(s.faq.label)}<h2>${lines(s.faq.title)}</h2></div><div class="faq-list">${s.faq.items.map(([q,a])=>`<details><summary>${esc(q)}<span class="faq-icon" aria-hidden="true">+</span></summary><p>${esc(a)}</p></details>`).join('')}</div></div></section>
+<section class="contact section" id="contact"><div class="wrap contact-grid"><div>${label(s.contact.label)}<h2>${lines(s.contact.title)}</h2></div><div class="contact-copy"><p class="contact-prompt">${esc(s.contact.prompt)}</p>${contacts.length ? `<div class="contact-links">${contacts.map(([title,href])=>`<a class="button button-dark" href="${esc(href)}">${esc(title)} ${arrow}</a>`).join('')}</div>` : `<div class="contact-empty"><span class="contact-empty-title">${esc(s.ui.contactPending)}</span><p>${esc(s.contact.preview)}</p></div>`}</div></div></section>
+</main><footer class="footer wrap"><div><a class="footer-name" href="#top">${esc(s.name)}</a><p>${esc(s.ui.footer)}</p></div><span class="preview-label">${esc(s.ui.preview)}</span><a class="back-top" href="#top">${esc(s.ui.top)} ↑</a></footer>`;
+const menuButton = document.querySelector('.menu-button');
+const mobileNav = document.querySelector('#mobile-nav');
+const setMenu = open => {menuButton.setAttribute('aria-expanded', String(open)); mobileNav.hidden = !open; menuButton.innerHTML = `${esc(open ? s.ui.close : s.ui.menu)} <span aria-hidden="true">${open ? '×' : '☰'}</span>`;};
+menuButton.addEventListener('click', () => setMenu(mobileNav.hidden));
+mobileNav.addEventListener('click', e => {if(e.target.closest('a')) setMenu(false);});
+document.addEventListener('keydown', e => {if(e.key === 'Escape' && !mobileNav.hidden){setMenu(false);menuButton.focus();}});
+document.addEventListener('click', e => {if(!e.target.closest('.header')) setMenu(false);});
+matchMedia('(min-width: 901px)').addEventListener('change', e => {if(e.matches) setMenu(false);});
+if (!matchMedia('(prefers-reduced-motion: reduce)').matches && 'IntersectionObserver' in window) {
+  const observer = new IntersectionObserver(entries => entries.forEach(entry => {if(entry.isIntersecting){entry.target.classList.add('visible');observer.unobserve(entry.target);}}),{threshold:0.08});
+  document.querySelectorAll('.section-heading, .about-grid, .format-row, .moment, .steps article, .faq-grid').forEach(el => {el.classList.add('reveal');observer.observe(el);});
+}
